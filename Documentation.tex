@@ -1,0 +1,53 @@
+\documentclass[12pt]{article}
+
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\setlength\parindent{0pt}
+
+\begin{document}
+
+\pagestyle{myheadings}
+\markboth{\hfill\hfill Tong Wu - z3417604}{Tong Wu - z3417604 \hfill\hfill}
+
+\title{Simple Operating System}
+\author{Tong Wu - z3417604\\Lewis Lee - z3415068}
+
+\maketitle
+
+\section{Clock Driver}
+\subsection{High Level Description}
+The clock driver is implemented using the EPIT1 and EPIT2 timers and implements the following functions;
+
+\begin{itemize}
+\item \textbf{int} start\_timer(\textbf{seL4\_CPtr} interrupt\_ep1, \textbf{seL4\_CPtr} interrupt\_ep2)\\
+This is called to initialize both EPIT1 and EPIT2 timers. It takes in two \textbf{seL4\_CPtr}s and sets them as interrupt endpoints for EPIT1 and EPIT2 respectively. If the timers are already running (ie start\_timer had been called before), then they will be stopped and restarted. \textbf{CLOCK\_R\_OK} will be returned on success, otherwise \textbf{CLOCK\_R\_FAIL} will be returned.
+
+\item \textbf{uint32\_t} register\_timer(\textbf{uint64\_t} delay, \textbf{timer\_callback\_t} callback, \textbf{void} *data)\\
+This is called to set a timer which will expire after a given delay while calling a given callback function. If timers are not initialized, \textbf{CLOCK\_R\_UINT} will be returned, \textbf{CLOCK\_R\_FAIL} will be returned if the maximum number of timers is reached (this is currently 50, this can be changed in clock.h). \textbf{CLOCK\_R\_OK} will be returned on success.
+
+\item \textbf{int} remove\_timer(\textbf{uint32\_t} id)\\
+This is an internal function which when called, removes the timer from the priority queue.
+
+\item \textbf{int} EPIT1\_interrupt(\textbf{void})\\
+This function should normally be called when there is a timer interrupt for \textbf{EPIT1} (used for heartbeats). When called, it will update the current time and reset the underflow flag (so the timer will continue to interrupt). It then acknowledges the interrupt handler. If \textbf{EPIT1} is not initialized, \textbf{CLOCK\_R\_UINT} will be returned, otherwise \textbf{CLOCK\_R\_OK} will be returned.
+
+\item \textbf{int} EPIT2\_interrupt(\textbf{void})\\
+This function should normally be called when there is a timer interrupt for \textbf{EPIT2} (used for callback timers). When called, it will call the callback function for the current timer in queue, then removes the timer from queue using \textbf{remove\_timer()}. If \textbf{EPIT2} is not initialized, \textbf{CLOCK\_R\_UINT} will be returned, otherwise \textbf{CLOCK\_R\_OK} will be returned.
+
+\item \textbf{timestamp\_t} time\_stamp(\textbf{void})\\
+This function prints out the current time after \textbf{start\_timer()} was called. It checks the underflow flag in case it missed an interrupt and adds additional time if necessary. Then it adds the time elapsed since the last interrupt to the current time and returns the current time in microseconds (64-bit unsigned integer). If \textbf{EPIT1} is not initialized, \textbf{CLOCK\_R\_UINT} will be returned.
+
+\item \textbf{int} stop\_timer(\textbf{void})\\
+This function can be called to stop all current callback timers and to do a soft reset on both \textbf{EPIT1} and \textbf{EPIT2}. \textbf{CLOCK\_R\_UINT} will be returned if the timers are not initialized, otherwise \textbf{CLOCK\_R\_OK} will be returned.
+\end{itemize}
+
+\end{document}
