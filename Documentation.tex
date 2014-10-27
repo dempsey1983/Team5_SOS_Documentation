@@ -30,7 +30,7 @@
 \clearpage
 
 \section{Clock Driver}
-\subsection{Overview}
+\subsection{Interface}
 The clock driver is implemented using the EPIT1 and EPIT2 timers and implements the following functions;
 
 \begin{itemize}
@@ -68,33 +68,278 @@ The current values for PRESCALAR\_EPIT1 and TIMER\_TICK\_INTERVAL means that we 
 \subsection{Usage}
 In SOS, the clock driver is initialized on boot before the entering the main syscall loop. The EPIT1 interrupt is used for the 100ms heart beat and EPIT2 is used for timers (used to implement sleep). 
 
+\clearpage
 \section{Frame Table}
-\subsection{Overview}
+\subsection{Interface}
+\begin{itemize}
+\item int frametable\_init(void)
+\item int frame\_alloc(seL4\_Word *vaddr)
+\item int frame\_free(seL4\_Word vaddr)
+\item int frametable\_add\_page\_cap(seL4\_CPtr cap, seL4\_Word sos\_vaddr)
+\item int frametable\_map\_app\_page(pid\_t pid, seL4\_CPtr cap, seL4\_Word sos\_vaddr, seL4\_Word           app\_vaddr)
+\item seL4\_CPtr frame\_get\_page\_cap(seL4\_Word vaddr)
+\item seL4\_CPtr frame\_get\_cap(seL4\_Word vaddr)
+\item seL4\_Word elf\_frame\_alloc(seL4\_Word kdst)
+\item int frame\_swap\_in(int file\_index, seL4\_Word sos\_vaddr)
+\item int frame\_swap\_out(seL4\_Word *vaddr)
+\item void swap\_file\_create(void)
+\item int file\_frame\_free(seL4\_Word index)
+\end{itemize}
+\subsection{Structure}
 \subsection{Operation}
 
-\section{Page Table}
-\subsection{Overview}
+\clearpage
+\section{Page Table/Address Space}
+\subsection{Interface}
+\begin{itemize}
+\item struct addrspace *addrspace\_create(void)
+\item int sos\_map\_page\_table(struct addrspace *as, seL4\_Word vaddr)
+\item int sos\_map\_page(pid\_t pid, seL4\_Word vaddr, seL4\_ARM\_VMAttributes attr, int swappable)
+\item int sos\_define\_region(struct addrspace *as, seL4\_CapRights permissions, int start, int end)
+\item int check\_region(struct addrspace *as, seL4\_Word vaddr, seL4\_CapRights *permissions)
+\item seL4\_CPtr app\_vaddr\_frame\_cap(struct addrspace *as, seL4\_Word app\_vaddr)
+\item seL4\_Word get\_sos\_vaddr(struct addrspace *as, seL4\_Word app\_vaddr)
+\item void set\_cur\_as(struct addrspace *as)
+\item uint32\_t expand\_virtual\_heap(uint32\_t newbrk)
+\item void addrspace\_destroy(struct addrspace *as)
+\item int sos\_map\_elf\_page(struct addrspace *as, seL4\_Word kvpage, seL4\_Word vpage)
+\end{itemize}
+\subsection{Structure}
 \subsection{Operation}
 
+\clearpage
 \section{System Calls}
 \subsection{Overview}
-\subsection{Interface}
-\subsection{Operation}
+In the application side, the system call functions determines the SOS system call number and sends data through IPC Message Registers and blocks until a reply comes from SOS. For sending and receiving large amounts of data, the libsos sends a pointer to an empty array, which will get translated, page by page by SOS, and filled. When a reply is received, libsos will retrieve data from the message registers and for large data, SOS would have filled it in already.
 
+When SOS receives a system call, it retrieves the system call number from message register 0 and uses it to index an array of function pointers pointing to the corresponding hand system call function. When SOS is finished handling the system call, it replies and the application will resume.
+\subsection{Interface}
+\subsubsection{Application System Calls}
+\begin{itemize}
+\item \textbf{fildes\_t} sos\_sys\_open(\textbf{const char} *path, \textbf{int} flags)\\
+Opens console if path is "console" otherwise, tries to open the given path from the file system.
+flags can be \textbf{O\_RDONLY}, \textbf{O\_WRONLY} or \textbf{O\_RDWR}
+\item \textbf{int} sos\_sys\_close(\textbf{fildes\_t} file)\\
+Closes the file given by the file handle
+\item \textbf{int} sos\_sys\_read(\textbf{fildes\_t} file, \textbf{char} *buf, \textbf{size\_t} nbyte)\\
+Reads the file given by the file handle, using the function pointer to the correct read function (eg. tty or nfs) defined when the file was opened. tries to read nbytes but can return with less than that amount.
+\item \textbf{int} sos\_sys\_write(\textbf{fildes\_t} file, \textbf{const char} *buf, \textbf{size\_t} nbyte)\\
+Write to the file given by the file handle, using the function pointer to the correct write function defined when the file was opened.
+\item \textbf{int} sos\_getdirent(\textbf{int} pos, \textbf{char} *name, \textbf{size\_t} nbyte)\\
+Get directory entry given by pos from nfs.
+\item \textbf{int} sos\_stat(\textbf{const char} *path, \textbf{sos\_stat\_t} *buf)\\
+Returns information about file "path".
+\item \textbf{pid\_t} sos\_process\_create(\textbf{const char} *path)\\
+Creates a new process running the executable "path".
+\item \textbf{int} sos\_process\_delete(\textbf{pid\_t} pid)\\
+Deletes the process given by "pid".
+\item \textbf{pid\_t} sos\_my\_id(\textbf{void})\\
+Returns the pid of the current process.
+\item \textbf{int} sos\_process\_status(\textbf{sos\_process\_t} *processes, \textbf{unsigned} max)\\
+Returns the status of currently running processes. Max specifies the maximum number of process statuses to return.
+\item \textbf{pid\_t} sos\_process\_wait(\textbf{pid\_t} pid)\\
+Waits for the process given by pid to finish before resuming. If pid is -1 then wait for anything to finish before resuming.
+\item \textbf{int64\_t} sos\_sys\_time\_stamp(\textbf{void})\\
+Returns the current time since boot in microseconds.
+\item \textbf{void} sos\_sys\_usleep(\textbf{int} msec)\\
+Waits for "msec" milliseconds before resuming.resuming
+\item \textbf{long} sys\_brk(\textbf{va\_list} ap)\\
+Increases the heap region to a new brk point determined by "ap".
+\end{itemize}
+\subsubsection{Internal Functions}
+All handle syscall functions in SOS have void return type and take one argument, "mypid" (PID of the caller application extracted from the incoming badge). Functions are called by indexing an array of function pointers to the handle syscall function corresponding to the syscall number.
+
+Currently implemented syscall numbers are;
+\begin{enumerate}
+\item SOS\_SYS\_OPEN
+\item SOS\_SYS\_CLOSE
+\item SOS\_SYS\_READ
+\item SOS\_SYS\_WRITE
+\item SOS\_SYS\_GETDIRENT
+\item SOS\_SYS\_STAT
+\item SOS\_SYS\_PROCESS\_CREATE
+\item SOS\_SYS\_PROCESS\_DELETE
+\item SOS\_SYS\_MYID
+\item SOS\_SYS\_PROCESS\_STATUS
+\item SOS\_SYS\_PROCESS\_WAIT
+\item SOS\_SYS\_TIMESTAMP
+\item SOS\_SYS\_USLEEP
+\item SOS\_SYS\_BRK
+\item SOS\_TTY\_OPEN
+\item SOS\_TTY\_CLOSE
+\item SOS\_TTY\_WRITE
+\item SOS\_TTY\_READ
+\item SOS\_SYS\_CREATE
+\end{enumerate}
+
+\subsection{Coroutines}
+We use coroutines sparingly and it was only first introduced to handle demand paging. Prior to that all our system calls relies purely on blocking and replying to the application through the method provided by seL4.
+For coroutines, we are using an open source library called "picoro". The reason we chose picoro is because it provides us with a minimal number of functions we need to use coroutines effectively and its code base is extremely small (less than 100 lines), thus easy to understand. Picoro provides the following functions;
+\begin{itemize}
+\item \textbf{coro} coroutine(\textbf{void} *fun(\textbf{void} *arg))\\
+Create a new coroutine that executes the given function when resumed for the first time
+\item \textbf{int} resumable(\textbf{coro} c)\\
+Returns whether the coroutine is resumable
+\item \textbf{void} *resume(\textbf{coro} c, \textbf{void} *arg)\\
+Resumes the given coroutine
+\item \textbf{void} *yield(\textbf{void} *arg)\\
+Yield from the coroutine we are currently in
+\end{itemize}
+
+Picoro has been added as a library, "libpicoro" to our code and some slight modifications were made to the picoro code in order for correct operation with SOS.
+Each coroutine has a stack of 16KB, used to store local variables when we switch coroutines.
+Each process has its own coroutine, created during each system call.
+\clearpage
+\subsection{Operation}
+Below is a diagram of how our system calls generally operate. Blue lines indicate flow within SOS, red lines within an application and black lines indicate IPC. The large rounded rectangles are coroutines and everything inside belongs to that coroutine. Smaller rounded rectangles indicate a coroutine operation. 
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.6]{System_Calls_Type2}
+\caption{System Calls Operation}
+\end{figure}
+
+Stepping through;
+\begin{enumerate}
+\item Application does a system call
+\item Libsos sends relevant information to SOS via IPC
+\item SOS receives the message and determines the PID of the caller via its badge.
+\item SOS then creates and executes a new coroutine assigned to the caller process.
+\item If the system call involves being able to receive callbacks before continuing (eg. reading from nfs), we yield back to the main syscall loop. This way we avoid blocking the kernel.
+\item When the callback comes through, we resume back to the point we left off in the handle syscall relating the PID of the original caller.
+\item When no more operations need to be done, and the last call back comes through, we reply to the application
+\item Libsos, depending on the system call, retrieve information received and return back to the main application.
+
+\end{enumerate}
+
+\clearpage
 \section{File System}
-\subsection{Overview}
+\subsection{Interface}
+Handle syscall functions;
+\begin{itemize}
+\item void syscall\_sys\_create(pid\_t mypid)\\
+Sends NFS request to create a file with Read/Write permissions and yields to main.
+\item void syscall\_sys\_open(pid\_t mypid)\\
+Calls nfs\_lookup with path and yields to main.
+\item void syscall\_sys\_close(pid\_t mypid)\\
+Removes the file descriptor from the file table and yields to main.
+\item void sys\_read\_routine(struct read\_write\_data *data)\\
+Sends NFS requests one at a time and yields back to main. When this resumes, it repeats the process until no more reads are needed.
+\item void syscall\_sys\_read(pid\_t mypid)\\
+Gets information from message registers and checks permissions with file descriptor table. If the permissions for the file is write only, fail and reply back to caller. Otherwise, call sys\_read\_routine.
+\item void sys\_write\_routine(struct read\_write\_data *data)\\
+Sends NFS requests up to MAX\_IN\_FLIGHT (currently 4), then yields to the main syscall loop. When this next resumes, it will repeat the process until it has no more to send.
+\item void syscall\_sys\_write(pid\_t mypid)\\
+Gets information from message registers and checks permissions with the file descriptor table. If the permissions for the file is read only, fail and reply back to the caller. Otherwise, call sys\_write\_routine.
+\item void syscall\_sys\_getdirent(pid\_t mypid)
+Sets up tokens, calls nfs\_readdir and yields back to main.
+\item void syscall\_sys\_stat(pid\_t mypid)
+Calls nfs\_lookup with the path and yields back to main.
+\end{itemize}
+Callbacks;
+\begin{itemize}
+\item \textbf{void} nfs\_lookup\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fhandle\_t} *fh, \textbf{fattr\_t} *fattr)\\
+Callback function for the sys\_stat syscall. Replies to original caller.
+\item \textbf{void} nfs\_create\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fhandle\_t} *fh, \textbf{fattr\_t} *fattr)\\
+Callback function for the sys\_create syscall. Replies to original caller.
+\item \textbf{void} nfs\_open\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fhandle\_t} *fh, \textbf{fattr\_t} *fattr)\\
+Callback for the sys\_open syscall. Replies to original caller.
+\item \textbf{void} nfs\_readdir\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{int} num\_files, \textbf{char} *file\_names[], \textbf{nfscookie\_t} nfscookie)\\
+Callback for the sys\_getdirent syscall. Replies to original caller.
+\item \textbf{void} nfs\_read\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fattr\_t} *fattr, \textbf{int} count, \textbf{void} *data)\\
+Callback for the sys\_read syscall. If not the last callback (ie, there are still things left to be read), then resume the coroutine corresponding to the pid of the original caller. Otherwise, reply to the original caller.
+\item \textbf{void} nfs\_write\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fattr\_t} *fattr, \textbf{int} count)\\
+Callback for the sys\_write syscall. If not the last callback (ie, the entire string has not yet been written), then resume the coroutine corresponding to the pid of the original caller. Otherwise, reply to the original caller.
+\end{itemize}
 \subsection{Operation}
 \subsection{Benchmarks}
 
+\clearpage
 \section{Demand Paging}
-\subsection{Overview}
-\subsection{Coroutines}
+\subsection{Interface}
 \subsection{Operation}
 
+\clearpage
 \section{Processes}
-\subsection{Overview}
-\subsection{Operation}
+\subsection{Interface}
+\begin{itemize}
+\item \textbf{uint32\_t} init\_procs(\textbf{void})\\
+Resets proccess array to default
+\item \textbf{pid\_t} create\_process(\textbf{char} *app\_name, \textbf{uint32\_t} priority, \textbf{seL4\_CPtr} fault\_ep)\\
+Finds the elf file given be "app\_name" that is contained within the cpio archive and creates a new process using that elf file.
+\item \textbf{uint32\_t} destroy\_process(\textbf{pid\_t} pid)\\
+Given a PID, destroys its address space, file descriptor table and frees any caps. If there were processes waiting for the process to be killed to finish, then resume them.
+\item \textbf{uint32\_t} wait\_for\_process(\textbf{pid\_t} mypid, \textbf{pid\_t} pid, \textbf{seL4\_CPtr} my\_reply\_cap)\\
+Adds mypid to target pid's waiting list, which will resume mypid when pid is destroyed. If target pid is -1, then add mypid to the global wait list, which will resume mypid when any process is destroyed.
+\item \textbf{struct addrspace} *get\_proc\_addr\_space(\textbf{pid\_t} pid)\\
+Gets the pointer to the address space of pid.
+\item \textbf{fdtable} get\_proc\_fd\_table(\textbf{pid\_t} pid)\\
+Gets the file descriptor table of pid
+\item \textbf{cspace\_t} *get\_proc\_cspace(\textbf{pid\_t} pid)\\
+Gets the cspace of this process.
+\item \textbf{coro} get\_proc\_coro(\textbf{pid\_t} pid)\\
+Gets the coroutine of this process.
+\item \textbf{seL4\_CPtr} get\_proc\_ipc\_reply\_cap(\textbf{pid\_t} pid)\\
+Gets the reply cap of the process.
+\item \textbf{uint32\_t} get\_proc\_stime(\textbf{pid\_t} pid)\\
+Gets the time since boot that the process was started at.
+\item \textbf{uint32\_t} get\_proc\_size(\textbf{pid\_t} pid)\\
+Gets the size of the process in pages.
+\item \textbf{char} * get\_proc\_name(\textbf{pid\_t} pid)\\
+Gets the name of the process.
+\item \textbf{char} get\_proc\_taken(\textbf{pid\_t} pid)\\
+Returns whether or not the pid number is in use.
+\item \textbf{coro} create\_coro(\textbf{pid\_t} pid, \textbf{void} *fun(\textbf{void} *arg))\\
+Creates a new coroutine unique to the process.
+\item \textbf{void} set\_proc\_ipc\_reply\_cap(\textbf{pid\_t} pid, \textbf{seL4\_CPtr} cap)\\
+Sets the reply cap of the process.
+\end{itemize}
+\subsection{Structure}
+The process struct;
+\begin{itemize}
+\item seL4\_Word tcb\_addr\\
+TCB cap, stored for destroy purpose
+\item seL4\_TCB tcb\_cap\\
+TCB cap, stored for destroy purpose
+\item struct addrspace *as\\
+The address space for this process, including the page table and region list
+\item fdtable fd\_table\\
+File descriptor table for this process, used for file systems
+\item seL4\_Word ipc\_buffer\_addr\\
+IPC buffer cap, stored for destroy purpose
+\item seL4\_CPtr ipc\_buffer\_cap\\
+IPC buffer cap, stored for destroy purpose
+\item cspace\_t *croot\\
+The croot for this process
+\item seL4\_CPtr ipc\_reply\_cap\\
+The reply cap for this process
+\item pid\_t wait\_list[MAX\_PROC]\\
+List of processes waiting for this process to finish
+\item uint32\_t num\_waits\\
+Num of other processes waiting on this process to finish
+\item coro proc\_coro\\
+The process coroutine, used for handle syscalls while not blocking kernel
+\item uint32\_t stime\\
+Time after boot at which the process was started
+\item uint32\_t size\\
+Size of the application in pages
+\item char name[N\_NANME]\\
+Name of the application, currently maximum 32 characters
+\item uint32\_t name\_length\\
+Length of the application name
+\item char taken\\
+When taken is not 0 then pid is in use.
+\end{itemize}
 
+There is an array "proc\_array" that contains a bunch of these structures and the index represents the PID.
+\subsection{Operation}
+\begin{itemize}
+\item The processes infrastructure is initialized in main before the first process is created. This ensures that all the processes in the process list is set to their default values. 
+
+\item When create is called, it assigns the process the lowest available pid number and a badge is created based on a offset of the pid number. An address space including page table is created for this process and regions for heap and stack are defined. Then its cspace is defined and an IPC buffer is created, the fault endpoint is minted to the process and a TCB object is created. Now, we either load the elf file from nfs or if it is the first process, load from cpio. Then we map in the stack, ipc buffer and start the process.
+
+\item When destroy is called we reply to all processes waiting on the current process and also all processes in the global wait list. Then we destroy the file descriptor table, unmap the ipc buffer cap. The free the ipc buffer using ut\_free. Then we free the ipc\_reply\_cap, and destroy the cspace. Now we free the TCB object and destroy the address space. Finally, make the pid available for a new process again.
+\end{itemize}
+\clearpage
 \section{ELF Loading}
 \subsection{Overview}
 \subsection{Operation}
