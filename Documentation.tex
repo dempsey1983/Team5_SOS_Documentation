@@ -16,15 +16,21 @@
 \begin{document}
 
 \pagestyle{myheadings}
-\markboth{\hfill\hfill Tong Wu - z3417604}{Tong Wu - z3417604 \hfill\hfill}
+\markboth{\hfill\hfill Team 5}{Team 5 \hfill\hfill}
 
 \title{Simple Operating System}
 \author{Tong Wu - z3417604\\Lewis Lee - z3415068}
 
 \maketitle
 
+\clearpage
+
+\tableofcontents
+
+\clearpage
+
 \section{Clock Driver}
-\subsection{High Level Description}
+\subsection{Overview}
 The clock driver is implemented using the EPIT1 and EPIT2 timers and implements the following functions;
 
 \begin{itemize}
@@ -49,5 +55,48 @@ This function prints out the current time after \textbf{start\_timer()} was call
 \item \textbf{int} stop\_timer(\textbf{void})\\
 This function can be called to stop all current callback timers and to do a soft reset on both \textbf{EPIT1} and \textbf{EPIT2}. \textbf{CLOCK\_R\_UINT} will be returned if the timers are not initialized, otherwise \textbf{CLOCK\_R\_OK} will be returned.
 \end{itemize}
+
+\subsection{Configurables}
+\begin{itemize}
+\item\textbf{PRESCALAR\_EPIT1}: Controls the prescale value for EPIT1, currently set to 6.
+\item\textbf{PRESCALAR\_EPIT2}: Controls the prescale value for EPIT2, Currently set to 66.
+\item\textbf{TIMER\_TICK\_INTERVAL}: Controls the amount of timer ticks between each interrupt for EPIT1, currently set to 1100000.
+\item\textbf{MAX\_TIMERS}: Controls the maximum amount of timers we can have registered at once, currently set to 50.
+\end{itemize}
+The current values for PRESCALAR\_EPIT1 and TIMER\_TICK\_INTERVAL means that we get interrupts at 10Hz (100ms intervals) and due to the large TIMER\_TICK\_INTERVAL, we can get up to micro second accuracy since we can determine time passed between heart beats by reading the counter values directly.
+
+\subsection{Usage}
+In SOS, the clock driver is initialized on boot before the entering the main syscall loop. The EPIT1 interrupt is used for the 100ms heart beat and EPIT2 is used for timers (used to implement sleep). 
+
+\section{Frame Table}
+\subsection{Overview}
+\subsection{Operation}
+
+\section{Page Table}
+\subsection{Overview}
+\subsection{Operation}
+
+\section{System Calls}
+\subsection{Overview}
+\subsection{Interface}
+\subsection{Operation}
+
+\section{File System}
+\subsection{Overview}
+\subsection{Operation}
+\subsection{Benchmarks}
+
+\section{Demand Paging}
+\subsection{Overview}
+\subsection{Coroutines}
+\subsection{Operation}
+
+\section{Processes}
+\subsection{Overview}
+\subsection{Operation}
+
+\section{ELF Loading}
+\subsection{Overview}
+\subsection{Operation}
 
 \end{document}
