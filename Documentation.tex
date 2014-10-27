@@ -31,6 +31,8 @@
 
 \section{Assumptions \& Known Issues}
 \begin{itemize}
+\item Maximum processes name length is 32 characters long
+\item Error checking with processes is not robust
 \item Demand paging uses FIFO, not Second Chance algorithm. Not sure where to obtain the referenced bit for a frame.
 \item Swapping does not work with multiple processes running, we start getting cap faults at random places.
 \end{itemize}
@@ -71,27 +73,43 @@ This function can be called to stop all current callback timers and to do a soft
 \end{itemize}
 The current values for PRESCALAR\_EPIT1 and TIMER\_TICK\_INTERVAL means that we get interrupts at 10Hz (100ms intervals) and due to the large TIMER\_TICK\_INTERVAL, we can get up to micro second accuracy since we can determine time passed between heart beats by reading the counter values directly.
 
-\subsection{Usage}
+\subsection{Operation}
 In SOS, the clock driver is initialized on boot before the entering the main syscall loop. The EPIT1 interrupt is used for the 100ms heart beat and EPIT2 is used for timers (used to implement sleep). 
 
 \clearpage
 \section{Frame Table}
 \subsection{Interface}
 \begin{itemize}
-\item int frametable\_init(void)
-\item int frame\_alloc(seL4\_Word *vaddr)
-\item int frame\_free(seL4\_Word vaddr)
-\item int frametable\_add\_page\_cap(seL4\_CPtr cap, seL4\_Word sos\_vaddr)
-\item int frametable\_map\_app\_page(pid\_t pid, seL4\_CPtr cap, seL4\_Word sos\_vaddr, seL4\_Word           app\_vaddr)
-\item seL4\_CPtr frame\_get\_page\_cap(seL4\_Word vaddr)
-\item seL4\_CPtr frame\_get\_cap(seL4\_Word vaddr)
-\item seL4\_Word elf\_frame\_alloc(seL4\_Word kdst)
-\item int frame\_swap\_in(int file\_index, seL4\_Word sos\_vaddr)
-\item int frame\_swap\_out(seL4\_Word *vaddr)
-\item void swap\_file\_create(void)
-\item int file\_frame\_free(seL4\_Word index)
+\item \textbf{int} frametable\_init(\textbf{void})\\
+Initialises the frame table
+\item \textbf{int} frame\_alloc(\textbf{seL4\_Word} *vaddr)\\
+Maps a page to the vaddr given, returns a paddr
+\item \textbf{int} frame\_free(\textbf{seL4\_Word} vaddr)\\
+Frees the paddr given
+\item \textbf{int} frametable\_add\_page\_cap(\textbf{seL4\_CPtr} cap, \textbf{seL4\_Word} sos\_vaddr)\\
+Add a page cap to the corresponding frame of frametable
+\item \textbf{int} frametable\_map\_app\_page(\textbf{pid\_t} pid, \textbf{seL4\_CPtr} cap, \textbf{seL4\_Word} sos\_vaddr, \textbf{seL4\_Word} app\_vaddr)\\
+Maps an app allocated page
+\item \textbf{seL4\_CPtr} frame\_get\_cap(\textbf{seL4\_Word} vaddr)\\
+Returns the page cap associated with a frame
 \end{itemize}
 \subsection{Structure}
+The frametable is simply an contiguous array of frames. The frametable itself resides at a fixed offset past DMA region.
+
+Each frame contains the following data;
+\begin{itemize}
+\item \textbf{seL4\_CPtr} cptr
+\item \textbf{seL4\_CPtr} page\_cptr
+\item \textbf{seL4\_Word} app\_vaddr
+\item \textbf{pid\_t} pid\\
+The process that owns the frame
+\item \textbf{int} next\_swap\_frame\\
+The next frame in the swap queue for demand paging
+\item \textbf{int} prev\_swap\_frame\\
+The previous frame in the swap queue for demand paging
+\item \textbf{int} swap\_send\_count
+\item \textbf{int} spare
+\end{itemize}
 \subsection{Operation}
 Our frametable keeps track of allocated frames (physical memory which has been retyped and mapped). It maps one to one in a region of virtual memory past the DMA region. It keeps track of which addrspace it belongs to (and related information) as well as caps for freeing and mapping memory.
 
@@ -99,17 +117,28 @@ Our frametable keeps track of allocated frames (physical memory which has been r
 \section{Page Table/Address Space}
 \subsection{Interface}
 \begin{itemize}
-\item struct addrspace *addrspace\_create(void)
-\item int sos\_map\_page\_table(struct addrspace *as, seL4\_Word vaddr)
-\item int sos\_map\_page(pid\_t pid, seL4\_Word vaddr, seL4\_ARM\_VMAttributes attr, int swappable)
-\item int sos\_define\_region(struct addrspace *as, seL4\_CapRights permissions, int start, int end)
-\item int check\_region(struct addrspace *as, seL4\_Word vaddr, seL4\_CapRights *permissions)
-\item seL4\_CPtr app\_vaddr\_frame\_cap(struct addrspace *as, seL4\_Word app\_vaddr)
-\item seL4\_Word get\_sos\_vaddr(struct addrspace *as, seL4\_Word app\_vaddr)
-\item void set\_cur\_as(struct addrspace *as)
-\item uint32\_t expand\_virtual\_heap(uint32\_t newbrk)
-\item void addrspace\_destroy(struct addrspace *as)
-\item int sos\_map\_elf\_page(struct addrspace *as, seL4\_Word kvpage, seL4\_Word vpage)
+\item \textbf{struct addrspace} *addrspace\_create(\textbf{void})\\
+Create a new address space with first page level initialized
+\item \textbf{int} sos\_map\_page\_table(\textbf{struct addrspace} *as, \textbf{seL4\_Word} vaddr)\\
+Maps a second level table into the given page directory (1st level)
+\item \textbf{int} sos\_map\_page(\textbf{pid\_t} pid, \textbf{seL4\_Word} vaddr, \textbf{seL4\_ARM\_VMAttributes} attr, \textbf{int} swappable)\\
+Map a physical address to a page
+\item \textbf{int} sos\_define\_region(\textbf{struct addrspace} *as, \textbf{seL4\_CapRights} permissions, \textbf{int} start, \textbf{int} end)\\
+Defines a usable region for the application
+\item \textbf{int} check\_region(\textbf{struct addrspace} *as, \textbf{seL4\_Word} vaddr, \textbf{seL4\_CapRights} *permissions)\\
+Check whether a region is valid and extract its permissions
+\item \textbf{seL4\_CPtr} app\_vaddr\_frame\_cap(\textbf{struct addrspace} *as, \textbf{seL4\_Word} app\_vaddr)\\
+Return the frame cap for the corresponding application virtual address
+\item \textbf{seL4\_Word} get\_sos\_vaddr(\textbf{ addrspace} *as, \textbf{seL4\_Word} app\_vaddr)\\
+Given an address space and application address, returns the corresponding sos virtual address
+\item \textbf{void} set\_cur\_as(\textbf{struct addrspace} *as)\\
+Set the cur\_as (a global variable identifying the address space of the last process that sent a syscall)
+\item \textbf{uint32\_t} expand\_virtual\_heap(\textbf{uint32\_t} newbrk)\\
+Expands the virtual heap for the application, used by sys\_brk
+\item \textbf{void} addrspace\_destroy(\textbf{struct addrspace} *as)\\
+Destroy the given address space
+\item \textbf{int} sos\_map\_elf\_page(\textbf{struct addrspace} *as, \textbf{seL4\_Word} kvpage, \textbf{seL4\_Word} vpage)\\
+sed for mapping elf pages, as kdst needs to be mapped.
 \end{itemize}
 \subsection{Structure}
 \subsection{Operation}
@@ -224,23 +253,23 @@ Stepping through;
 \subsection{Interface}
 Handle syscall functions;
 \begin{itemize}
-\item void syscall\_sys\_create(pid\_t mypid)\\
+\item \textbf{void} syscall\_sys\_create(\textbf{pid\_t} mypid)\\
 Sends NFS request to create a file with Read/Write permissions and yields to main.
-\item void syscall\_sys\_open(pid\_t mypid)\\
+\item \textbf{void} syscall\_sys\_open(\textbf{pid\_t} mypid)\\
 Calls nfs\_lookup with path and yields to main.
-\item void syscall\_sys\_close(pid\_t mypid)\\
+\item \textbf{void} syscall\_sys\_close(\textbf{pid\_t} mypid)\\
 Removes the file descriptor from the file table and yields to main.
-\item void sys\_read\_routine(struct read\_write\_data *data)\\
+\item \textbf{void} sys\_read\_routine(\textbf{struct read\_write\_data} *data)\\
 Sends NFS requests one at a time and yields back to main. When this resumes, it repeats the process until no more reads are needed.
-\item void syscall\_sys\_read(pid\_t mypid)\\
+\item \textbf{void} syscall\_sys\_read(\textbf{pid\_t} mypid)\\
 Gets information from message registers and checks permissions with file descriptor table. If the permissions for the file is write only, fail and reply back to caller. Otherwise, call sys\_read\_routine.
-\item void sys\_write\_routine(struct read\_write\_data *data)\\
+\item \textbf{void} sys\_write\_routine(\textbf{struct read\_write\_data} *data)\\
 Sends NFS requests up to MAX\_IN\_FLIGHT (currently 4), then yields to the main syscall loop. When this next resumes, it will repeat the process until it has no more to send.
-\item void syscall\_sys\_write(pid\_t mypid)\\
+\item \textbf{void} syscall\_sys\_write(\textbf{pid\_t} mypid)\\
 Gets information from message registers and checks permissions with the file descriptor table. If the permissions for the file is read only, fail and reply back to the caller. Otherwise, call sys\_write\_routine.
-\item void syscall\_sys\_getdirent(pid\_t mypid)
+\item \textbf{void} syscall\_sys\_getdirent(\textbf{pid\_t} mypid)\\
 Sets up tokens, calls nfs\_readdir and yields back to main.
-\item void syscall\_sys\_stat(pid\_t mypid)
+\item \textbf{void} syscall\_sys\_stat(\textbf{pid\_t} mypid)\\
 Calls nfs\_lookup with the path and yields back to main.
 \end{itemize}
 Callbacks;
@@ -259,17 +288,40 @@ Callback for the sys\_read syscall. If not the last callback (ie, there are stil
 Callback for the sys\_write syscall. If not the last callback (ie, the entire string has not yet been written), then resume the coroutine corresponding to the pid of the original caller. Otherwise, reply to the original caller.
 \end{itemize}
 \subsection{Operation}
+Here is a diagram of the write operation.
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.6]{SYS_WRITE}
+\caption{File System Write Operation}
+\end{figure}
+Stepping through;
+\begin{enumerate}
+\item Application does a system call, passing through the address of the data array it wants to write via IPC
+\item SOS receives the message and determines the PID of the caller via its badge.
+\item SOS then creates and executes a new coroutine assigned to the caller process.
+\item SOS copies 1024 bytes of data at a time from the address given by the application (translated into sos virtual address), into a temporary write buffer. The nfs\_write is called and the pid along with other information is passed through the token. After we send the maximum amount of NFS packets inflight at a time, we yield.
+\item When the last callback comes through, we resume back to handle syscall and repeat step 4.
+\item When no more operations need to be done, and the last call back comes through, we reply to the application with the total number of bytes written.
+\end{enumerate}
+
+The read operation is similar, however instead of copying data from the application in handle syscall, we copy read data from events to the application.
 
 \clearpage
 \section{Demand Paging}
 \subsection{Interface}
 \begin{itemize}
-\item int frame\_swap\_in(int file\_index, seL4\_Word sos\_vaddr)
-\item int frame\_swap\_out(seL4\_Word *vaddr)
-\item void swap\_file\_create(void)
-\item void swap\_write\_reply(uintptr\_t token, enum nfs\_stat status, fattr\_t *fattr, int count)
-\item void swap\_read\_reply(uintptr\_t token, enum nfs\_stat status, fattr\_t *fattr, int count, void *data)
-\item void swap\_create\_reply(uintptr\_t token, enum nfs\_stat status, fhandle\_t *fh, fattr\_t *fattr)
+\item \textbf{int} frame\_swap\_in(\textbf{int} file\_index, \textbf{seL4\_Word} sos\_vaddr)\\
+Swap in the frame that is in the swap file at position pointed to by file index
+\item \textbf{int} frame\_swap\_out(\textbf{seL4\_Word} *vaddr)\\
+Swap out the given frame, appends to swap file
+\item \textbf{void} swap\_file\_create(\textbf{void})\\
+Creates the swap file on NFS
+\item \textbf{void} swap\_write\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fattr\_t} *fattr, \textbf{int} count)\\
+Callback function for swapping out
+\item \textbf{void} swap\_read\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fattr\_t} *fattr, \textbf{int} count, \textbf{void} *data)\\
+Callback function for swapping in
+\item \textbf{void} swap\_create\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fhandle\_t} *fh, \textbf{fattr\_t} *fattr)\\
+Callback function for creating the swap file
 \end{itemize}
 \subsection{Operation}
 \begin{itemize}
@@ -323,37 +375,37 @@ Sets the reply cap of the process.
 \subsection{Structure}
 The process struct;
 \begin{itemize}
-\item seL4\_Word tcb\_addr\\
+\item \textbf{seL4\_Word} tcb\_addr\\
 TCB cap, stored for destroy purpose
-\item seL4\_TCB tcb\_cap\\
+\item \textbf{seL4\_TCB} tcb\_cap\\
 TCB cap, stored for destroy purpose
-\item struct addrspace *as\\
+\item \textbf{struct addrspace} *as\\
 The address space for this process, including the page table and region list
-\item fdtable fd\_table\\
+\item \textbf{fdtable} fd\_table\\
 File descriptor table for this process, used for file systems
-\item seL4\_Word ipc\_buffer\_addr\\
+\item \textbf{seL4\_Word} ipc\_buffer\_addr\\
 IPC buffer cap, stored for destroy purpose
-\item seL4\_CPtr ipc\_buffer\_cap\\
+\item \textbf{seL4\_CPtr} ipc\_buffer\_cap\\
 IPC buffer cap, stored for destroy purpose
-\item cspace\_t *croot\\
+\item \textbf{cspace\_t} *croot\\
 The croot for this process
-\item seL4\_CPtr ipc\_reply\_cap\\
+\item \textbf{seL4\_CPtr} ipc\_reply\_cap\\
 The reply cap for this process
-\item pid\_t wait\_list[MAX\_PROC]\\
+\item \textbf{pid\_t} wait\_list[MAX\_PROC]\\
 List of processes waiting for this process to finish
-\item uint32\_t num\_waits\\
+\item \textbf{uint32\_t} num\_waits\\
 Num of other processes waiting on this process to finish
-\item coro proc\_coro\\
+\item \textbf{coro} proc\_coro\\
 The process coroutine, used for handle syscalls while not blocking kernel
-\item uint32\_t stime\\
+\item \textbf{uint32\_t} stime\\
 Time after boot at which the process was started
-\item uint32\_t size\\
+\item \textbf{uint32\_t} size\\
 Size of the application in pages
-\item char name[N\_NANME]\\
+\item \textbf{char} name[N\_NANME]\\
 Name of the application, currently maximum 32 characters
-\item uint32\_t name\_length\\
+\item \textbf{uint32\_t} name\_length\\
 Length of the application name
-\item char taken\\
+\item \textbf{char} taken\\
 When taken is not 0 then pid is in use.
 \end{itemize}
 
@@ -370,12 +422,19 @@ There is an array "proc\_array" that contains a bunch of these structures and th
 \section{ELF Loading}
 \subsection{Interface}
 \begin{itemize}
-\item int elf\_load\_from\_nfs(struct addrspace * as, const char *name, pid\_t pid)
-\item void elf\_lookup\_reply(uintptr\_t token, enum nfs\_stat status, fhandle\_t *fh, fattr\_t *fattr)
-\item void elf\_read\_reply(uintptr\_t token, enum nfs\_stat status, fattr\_t *fattr, int count, void *data)
-\item void elf\_segment\_read\_reply(uintptr\_t token, enum nfs\_stat status, fattr\_t *fattr, int count, void *data)
-\item static int load\_segment\_into\_vspace2(struct elf\_nfs\_data *nfs\_data, char *src, unsigned long segment\_size, unsigned long file\_size, unsigned long dst, unsigned long permissions)
-\item int elf\_load2(struct elf\_nfs\_data *nfs\_data, char *elf\_file)
+\item \textbf{int} elf\_load\_from\_nfs(\textbf{struct addrspace} * as, \textbf{const char} *name, \textbf{pid\_t} pid)\\
+Loads elf file given by "name" into the address space of process given by "pid".
+\item \textbf{void} elf\_lookup\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fhandle\_t} *fh, \textbf{fattr\_t} *fattr)\\
+Callback for nfs\_lookup
+\item \textbf{void} elf\_read\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fattr\_t} *fattr, \textbf{int} count, \textbf{void} *data)\\
+Callback for nfs\_read 
+\item \textbf{void} elf\_segment\_read\_reply(\textbf{uintptr\_t} token, \textbf{enum nfs\_stat} status, \textbf{fattr\_t} *fattr, \textbf{int} count, \textbf{void} *data)\\
+Callback for nfs\_read, used in load\_segment\_into\_vspace2
+\item \textbf{static int} load\_segment\_into\_vspace2(\textbf{struct elf\_nfs\_data} *nfs\_data, \textbf{char} *src, \textbf{unsigned long} segment\_size, \textbf{unsigned long} file\_size, \textbf{unsigned long} dst, \textbf{unsigned long} permissions)\\
+Loads the elf file obtained from nfs to address space
+\item \textbf{int} elf\_load2(\textbf{struct elf\_nfs\_data} *nfs\_data, \textbf{char} *elf\_file)\\
+Loads the elf file obtained from nfs to address space, calls load\_segment\_into\_vspace2
+
 \end{itemize}
 \subsection{Operation}
 \begin{itemize}
