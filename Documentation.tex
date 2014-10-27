@@ -3,7 +3,7 @@
 \usepackage{mathtools}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
-\usepackage[margin=1in]{geometry} 
+\usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amsthm,amssymb}
 \usepackage{graphicx}
 \usepackage{tikz}
@@ -18,7 +18,7 @@
 \pagestyle{myheadings}
 \markboth{\hfill\hfill Team 5}{Team 5 \hfill\hfill}
 
-\title{Simple Operating System}
+\title{Simple Operating System\\Documentation}
 \author{Tong Wu - z3417604\\Lewis Lee - z3415068}
 
 \maketitle
@@ -28,6 +28,12 @@
 \tableofcontents
 
 \clearpage
+
+\section{Assumptions \& Known Issues}
+\begin{itemize}
+\item Demand paging uses FIFO, not Second Chance algorithm. Not sure where to obtain the referenced bit for a frame.
+\item Swapping does not work with multiple processes running, we start getting cap faults at random places.
+\end{itemize}
 
 \section{Clock Driver}
 \subsection{Interface}
@@ -87,6 +93,7 @@ In SOS, the clock driver is initialized on boot before the entering the main sys
 \end{itemize}
 \subsection{Structure}
 \subsection{Operation}
+Our frametable keeps track of allocated frames (physical memory which has been retyped and mapped). It maps one to one in a region of virtual memory past the DMA region. It keeps track of which addrspace it belongs to (and related information) as well as caps for freeing and mapping memory.
 
 \clearpage
 \section{Page Table/Address Space}
@@ -106,6 +113,8 @@ In SOS, the clock driver is initialized on boot before the entering the main sys
 \end{itemize}
 \subsection{Structure}
 \subsection{Operation}
+Our two level pagetable keeps track of the relevant memory information related to a process. This includes things such as whether a page is in file or memory and where in memory it is located. There is also another table which keeps track of pagetable details (paddr and caps) so that items can be freed correctly. Each pagetable also keeps a region list in which applications can access memory when a page fault is triggered. 
+The key function of addrspace is to map pages between our OS and applications.
 
 \clearpage
 \section{System Calls}
@@ -208,7 +217,6 @@ Stepping through;
 \item When the callback comes through, we resume back to the point we left off in the handle syscall relating the PID of the original caller.
 \item When no more operations need to be done, and the last call back comes through, we reply to the application
 \item Libsos, depending on the system call, retrieve information received and return back to the main application.
-
 \end{enumerate}
 
 \clearpage
@@ -251,12 +259,31 @@ Callback for the sys\_read syscall. If not the last callback (ie, there are stil
 Callback for the sys\_write syscall. If not the last callback (ie, the entire string has not yet been written), then resume the coroutine corresponding to the pid of the original caller. Otherwise, reply to the original caller.
 \end{itemize}
 \subsection{Operation}
-\subsection{Benchmarks}
 
 \clearpage
 \section{Demand Paging}
 \subsection{Interface}
+\begin{itemize}
+\item int frame\_swap\_in(int file\_index, seL4\_Word sos\_vaddr)
+\item int frame\_swap\_out(seL4\_Word *vaddr)
+\item void swap\_file\_create(void)
+\item void swap\_write\_reply(uintptr\_t token, enum nfs\_stat status, fattr\_t *fattr, int count)
+\item void swap\_read\_reply(uintptr\_t token, enum nfs\_stat status, fattr\_t *fattr, int count, void *data)
+\item void swap\_create\_reply(uintptr\_t token, enum nfs\_stat status, fhandle\_t *fh, fattr\_t *fattr)
+\end{itemize}
 \subsection{Operation}
+\begin{itemize}
+\item When a frame is allocated via vm fault, it is added to the frame queue. This is
+done by two variables in each frame which point to the next frame and previous
+frame in the queue.
+
+\item For swapping out, we use a stack of indexes, as the order in which they return
+when freed is inconsequential. These indexes are stored in the page table entry
+of pages that are swapped out. When a page is in file, it has a infile bit set. On vm\_faults this bit is checked first and the frame swapped in if in file.
+
+\item Swapping means we needed a method of blocking, as the nfs operation must complete before we can continue on in the program (to keep memory safe).
+We used coroutines to carry this out, which simply yield back to the main loop after an nfs call, and return to the function on the nfs callback.
+\end{itemize}
 
 \clearpage
 \section{Processes}
@@ -341,7 +368,18 @@ There is an array "proc\_array" that contains a bunch of these structures and th
 \end{itemize}
 \clearpage
 \section{ELF Loading}
-\subsection{Overview}
+\subsection{Interface}
+\begin{itemize}
+\item int elf\_load\_from\_nfs(struct addrspace * as, const char *name, pid\_t pid)
+\item void elf\_lookup\_reply(uintptr\_t token, enum nfs\_stat status, fhandle\_t *fh, fattr\_t *fattr)
+\item void elf\_read\_reply(uintptr\_t token, enum nfs\_stat status, fattr\_t *fattr, int count, void *data)
+\item void elf\_segment\_read\_reply(uintptr\_t token, enum nfs\_stat status, fattr\_t *fattr, int count, void *data)
+\item static int load\_segment\_into\_vspace2(struct elf\_nfs\_data *nfs\_data, char *src, unsigned long segment\_size, unsigned long file\_size, unsigned long dst, unsigned long permissions)
+\item int elf\_load2(struct elf\_nfs\_data *nfs\_data, char *elf\_file)
+\end{itemize}
 \subsection{Operation}
+\begin{itemize}
+\item Elf loading from the NFS server was done by initially reading in the elf file header. From here, the points in the file which had to be read were done so by nfs, and then copied into the corresponding frame allocated. This was done one packet at a time. Due to the nfs operation we had to use coroutines, as with demand paging.
+\end{itemize}
 
 \end{document}
