@@ -1,0 +1,1034 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     40198,       1025]
+NotebookOptionsPosition[     39426,        994]
+NotebookOutlinePosition[     39760,       1009]
+CellTagsIndexPosition[     39717,       1006]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"data", "=", 
+   RowBox[{
+   "Import", "[", "\"\</home/tony/Workspace/local/benchmark/OH_100_4.csv\>\"",
+     "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"runs", "=", "20"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"vars", "=", "9"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"bytes", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"116508", "*", "i"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"i", ",", "1", ",", "9"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"totalWrite", "=", "3"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"OHWrite", "=", "4"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"totalRead", "=", "5"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"OHRead", "=", "6"}], ";"}]}], "Input",
+ CellChangeTimes->{{3.622101893259267*^9, 3.622101905559197*^9}, {
+  3.622102220046051*^9, 3.622102255626988*^9}, {3.622102505620233*^9, 
+  3.622102536044676*^9}, {3.622107407124386*^9, 3.622107407591905*^9}, {
+  3.622113785134543*^9, 3.622113785784045*^9}, {3.622113866842021*^9, 
+  3.622113868738318*^9}, {3.622115069902165*^9, 3.622115106187141*^9}, {
+  3.622116783416793*^9, 3.6221167834193974`*^9}, {3.622116830672221*^9, 
+  3.622116831154008*^9}, {3.622116862579948*^9, 3.622116862582144*^9}, {
+  3.6221183600050364`*^9, 3.622118361398122*^9}, {3.6221206123575087`*^9, 
+  3.622120629255211*^9}, {3.622125280190113*^9, 3.622125299034601*^9}, {
+  3.62225091566826*^9, 3.6222509331749067`*^9}, {3.6222509647202883`*^9, 
+  3.6222509648069477`*^9}},
+ NumberMarks->False],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"groupedData", "=", 
+   RowBox[{"Partition", "[", 
+    RowBox[{"data", ",", "9"}], "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.622102005395791*^9, 3.622102012085498*^9}, 
+   3.62210204593394*^9}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"writeData", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"Mean", "[", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"Extract", "[", 
+         RowBox[{"groupedData", ",", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "j", ",", "totalWrite"}], "}"}]}], "]"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"i", ",", "1", ",", "runs"}], "}"}]}], "]"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"j", ",", "1", ",", "vars"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeOHData", "=", 
+    RowBox[{"Table", "[", 
+     RowBox[{
+      RowBox[{"Mean", "[", 
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"Extract", "[", 
+          RowBox[{"groupedData", ",", 
+           RowBox[{"{", 
+            RowBox[{"i", ",", "j", ",", "OHWrite"}], "}"}]}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", "runs"}], "}"}]}], "]"}], "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"j", ",", "1", ",", "vars"}], "}"}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writeSD", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"StandardDeviation", "[", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"Extract", "[", 
+         RowBox[{"groupedData", ",", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "j", ",", "totalWrite"}], "}"}]}], "]"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"i", ",", "1", ",", "runs"}], "}"}]}], "]"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"j", ",", "1", ",", "vars"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeOHSD", "=", 
+    RowBox[{"Table", "[", 
+     RowBox[{
+      RowBox[{"StandardDeviation", "[", 
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"Extract", "[", 
+          RowBox[{"groupedData", ",", 
+           RowBox[{"{", 
+            RowBox[{"i", ",", "j", ",", "OHWrite"}], "}"}]}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", "runs"}], "}"}]}], "]"}], "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"j", ",", "1", ",", "vars"}], "}"}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writeTrueData", "=", 
+   RowBox[{"writeData", "-", "writeOHData"}]}], ";"}], "\[IndentingNewLine]", 
+
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeTrueSD", "=", 
+    RowBox[{"writeSD", "-", "writeOHSD"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writeSpeed", "=", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"bytes", "*", 
+      RowBox[{"8", "/", "1000"}]}], ")"}], "/", 
+    RowBox[{"(", 
+     RowBox[{"writeData", "*", 
+      SuperscriptBox["10", 
+       RowBox[{"-", "6"}]]}], ")"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeTrueSpeed", "=", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{"bytes", "*", 
+       RowBox[{"8", "/", "1000"}]}], ")"}], "/", 
+     RowBox[{"(", 
+      RowBox[{"writeTrueData", "*", 
+       SuperscriptBox["10", 
+        RowBox[{"-", "6"}]]}], ")"}]}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writeSpeedSD", "=", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"bytes", "*", 
+        RowBox[{"8", "/", "1000"}]}], ")"}], "*", "writeSD", "*", 
+      SuperscriptBox["10", 
+       RowBox[{"-", "6"}]]}], ")"}], "/", 
+    RowBox[{"(", 
+     RowBox[{"writeData", "*", 
+      SuperscriptBox["10", 
+       RowBox[{"-", "6"}]], 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"writeData", "*", 
+         SuperscriptBox["10", 
+          RowBox[{"-", "6"}]]}], "+", 
+        RowBox[{"writeSD", "*", 
+         SuperscriptBox["10", 
+          RowBox[{"-", "6"}]]}]}], ")"}]}], ")"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeTrueSpeedSD", "=", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"bytes", "*", 
+         RowBox[{"8", "/", "1000"}]}], ")"}], "*", "writeTrueSD", "*", 
+       SuperscriptBox["10", 
+        RowBox[{"-", "6"}]]}], ")"}], "/", 
+     RowBox[{"(", 
+      RowBox[{"writeTrueData", "*", 
+       SuperscriptBox["10", 
+        RowBox[{"-", "6"}]], 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"writeTrueData", "*", 
+          SuperscriptBox["10", 
+           RowBox[{"-", "6"}]]}], "+", 
+         RowBox[{"writeTrueSD", "*", 
+          SuperscriptBox["10", 
+           RowBox[{"-", "6"}]]}]}], ")"}]}], ")"}]}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readData", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"Mean", "[", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"Extract", "[", 
+         RowBox[{"groupedData", ",", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "j", ",", "totalRead"}], "}"}]}], "]"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"i", ",", "1", ",", "runs"}], "}"}]}], "]"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"j", ",", "1", ",", "vars"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readOHData", "=", 
+    RowBox[{"Table", "[", 
+     RowBox[{
+      RowBox[{"Mean", "[", 
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"Extract", "[", 
+          RowBox[{"groupedData", ",", 
+           RowBox[{"{", 
+            RowBox[{"i", ",", "j", ",", "OHRead"}], "}"}]}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", "runs"}], "}"}]}], "]"}], "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"j", ",", "1", ",", "vars"}], "}"}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readSD", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"StandardDeviation", "[", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"Extract", "[", 
+         RowBox[{"groupedData", ",", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "j", ",", "totalRead"}], "}"}]}], "]"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"i", ",", "1", ",", "runs"}], "}"}]}], "]"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"j", ",", "1", ",", "vars"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readOHSD", "=", 
+    RowBox[{"Table", "[", 
+     RowBox[{
+      RowBox[{"StandardDeviation", "[", 
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"Extract", "[", 
+          RowBox[{"groupedData", ",", 
+           RowBox[{"{", 
+            RowBox[{"i", ",", "j", ",", "OHRead"}], "}"}]}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", "runs"}], "}"}]}], "]"}], "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"j", ",", "1", ",", "vars"}], "}"}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readTrueData", "=", 
+   RowBox[{"readData", "-", "readOHData"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readTrueSD", "=", 
+    RowBox[{"readSD", "-", "readOHSD"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readSpeed", "=", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"bytes", "*", 
+      RowBox[{"8", "/", "1000"}]}], ")"}], "/", 
+    RowBox[{"(", 
+     RowBox[{"readData", "*", 
+      SuperscriptBox["10", 
+       RowBox[{"-", "6"}]]}], ")"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readTrueSpeed", "=", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{"bytes", "*", 
+       RowBox[{"8", "/", "1000"}]}], ")"}], "/", 
+     RowBox[{"(", 
+      RowBox[{"readTrueData", "*", 
+       SuperscriptBox["10", 
+        RowBox[{"-", "6"}]]}], ")"}]}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readSpeedSD", "=", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"bytes", "*", 
+        RowBox[{"8", "/", "1000"}]}], ")"}], "*", "readSD", "*", 
+      SuperscriptBox["10", 
+       RowBox[{"-", "6"}]]}], ")"}], "/", 
+    RowBox[{"(", 
+     RowBox[{"readData", "*", 
+      SuperscriptBox["10", 
+       RowBox[{"-", "6"}]], 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"readData", "*", 
+         SuperscriptBox["10", 
+          RowBox[{"-", "6"}]]}], "+", 
+        RowBox[{"readSD", "*", 
+         SuperscriptBox["10", 
+          RowBox[{"-", "6"}]]}]}], ")"}]}], ")"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readTrueSpeedSD", "=", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"bytes", "*", 
+         RowBox[{"8", "/", "1000"}]}], ")"}], "*", "readTrueSD", "*", 
+       SuperscriptBox["10", 
+        RowBox[{"-", "6"}]]}], ")"}], "/", 
+     RowBox[{"(", 
+      RowBox[{"readTrueData", "*", 
+       SuperscriptBox["10", 
+        RowBox[{"-", "6"}]], 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"readTrueData", "*", 
+          SuperscriptBox["10", 
+           RowBox[{"-", "6"}]]}], "+", 
+         RowBox[{"readTrueSD", "*", 
+          SuperscriptBox["10", 
+           RowBox[{"-", "6"}]]}]}], ")"}]}], ")"}]}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writePlot", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{"writeData", ",", 
+     RowBox[{"PlotStyle", "\[Rule]", "Blue"}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{"6", "*", 
+         SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeOHPlot", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{"writeOHData", ",", 
+      RowBox[{"PlotStyle", "\[Rule]", "Green"}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", 
+         RowBox[{"6", "*", 
+          SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writeSDMax", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{
+     RowBox[{"writeData", "+", "writeSD"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Blue", ",", "Dashed"}], "}"}]}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{"6", "*", 
+         SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeOHSDMax", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{
+      RowBox[{"writeOHData", "+", "writeOHSD"}], ",", 
+      RowBox[{"PlotStyle", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"Green", ",", "Dashed"}], "}"}]}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", 
+         RowBox[{"6", "*", 
+          SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writeSDMin", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{
+     RowBox[{"writeData", "-", "writeSD"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Blue", ",", "Dashed"}], "}"}]}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{"6", "*", 
+         SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeOHSDMin", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{
+      RowBox[{"writeOHData", "-", "writeOHSD"}], ",", 
+      RowBox[{"PlotStyle", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"Green", ",", "Dashed"}], "}"}]}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", 
+         RowBox[{"6", "*", 
+          SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writeSpeedPlot", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{"writeSpeed", ",", 
+     RowBox[{"PlotStyle", "\[Rule]", "Blue"}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeTrueSpeedPlot", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{"writeTrueSpeed", ",", 
+      RowBox[{"PlotStyle", "\[Rule]", "Green"}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writeSpeedSDMax", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{
+     RowBox[{"writeSpeed", "+", "writeSpeedSD"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Blue", ",", "Dashed"}], "}"}]}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeTrueSpeedSDMax", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{
+      RowBox[{"writeTrueSpeed", "+", "writeTrueSpeedSD"}], ",", 
+      RowBox[{"PlotStyle", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"Green", ",", "Dashed"}], "}"}]}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"writeSpeedSDMin", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{
+     RowBox[{"writeSpeed", "-", "writeSpeedSD"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Blue", ",", "Dashed"}], "}"}]}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"writeTrueSpeedSDMin", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{
+      RowBox[{"writeTrueSpeed", "-", "writeTrueSpeedSD"}], ",", 
+      RowBox[{"PlotStyle", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"Green", ",", "Dashed"}], "}"}]}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readPlot", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{"readData", ",", 
+     RowBox[{"PlotStyle", "\[Rule]", "Red"}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{"6", "*", 
+         SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readOHPlot", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{"readOHData", ",", 
+      RowBox[{"PlotStyle", "\[Rule]", "Orange"}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", 
+         RowBox[{"6", "*", 
+          SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readSDMax", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{
+     RowBox[{"readData", "+", "readSD"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Red", ",", "Dashed"}], "}"}]}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{"6", "*", 
+         SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readOHSDMax", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{
+      RowBox[{"readOHData", "+", "readOHSD"}], ",", 
+      RowBox[{"PlotStyle", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"Orange", ",", "Dashed"}], "}"}]}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", 
+         RowBox[{"6", "*", 
+          SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readSDMin", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{
+     RowBox[{"readData", "-", "readSD"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Red", ",", "Dashed"}], "}"}]}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{"6", "*", 
+         SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readOHSDMin", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{
+      RowBox[{"readOHData", "-", "readOHSD"}], ",", 
+      RowBox[{"PlotStyle", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"Orange", ",", "Dashed"}], "}"}]}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", 
+         RowBox[{"6", "*", 
+          SuperscriptBox["10", "6"]}]}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readSpeedPlot", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{"readSpeed", ",", 
+     RowBox[{"PlotStyle", "\[Rule]", "Red"}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readTrueSpeedPlot", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{"readTrueSpeed", ",", 
+      RowBox[{"PlotStyle", "\[Rule]", "Orange"}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readSpeedSDMax", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{
+     RowBox[{"readSpeed", "+", "readSpeedSD"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Red", ",", "Dashed"}], "}"}]}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"readTrueSpeedSDMax", "=", 
+    RowBox[{"ListLinePlot", "[", 
+     RowBox[{
+      RowBox[{"readTrueSpeed", "+", "readTrueSpeedSD"}], ",", 
+      RowBox[{"PlotStyle", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"Orange", ",", "Dashed"}], "}"}]}], ",", 
+      RowBox[{"PlotRange", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readSpeedSDMin", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{
+     RowBox[{"readSpeed", "-", "readSpeedSD"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Red", ",", "Dashed"}], "}"}]}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"readTrueSpeedSDMin", "=", 
+   RowBox[{"ListLinePlot", "[", 
+    RowBox[{
+     RowBox[{"readTrueSpeed", "-", "readTrueSpeedSD"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Orange", ",", "Dashed"}], "}"}]}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "60000"}], "}"}]}]}], "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->CompressedData["
+1:eJwdz1sogwEABeCFpDSl+DW3WtbUal40pWzIpay1zGW5RivRHtBQpKaFkRAj
+RoxcR6S1XFtm0jQbY83etJK0DSMPHpbbf/6H0/d2OocpaytrCqPRaKlkYIWX
+PbDwHcgfPwsfhnWc4CiMVGaNwTIFawoqCwNauFmdo4OKkNkEF9gOC0w3zLkh
+/WODvkh6OlufCuUENwO28lNyoedQUwT9P7slsHP1VwKT00xSqA0yWigdfx3w
+M0nTD/NVoXmYszS5BB+3opZhVIxug+p50O3Bxi6jA/ISuD648854hYTomXJU
+TW/XkYYIfg/0ZNcKV0iNWkIEhSnVNVDRx+2F6vZ4FYwuXzNAwcv2Eyy4P/bD
+Gd/b/ir+CmMPoPXcZYZx0/eUxQ3lg2vY1+1XQ2azawImEkMWKN0SWKHsyG6D
+Is7pDbzw5jnhLev9fB39zss76DZdZ+pJv8wSHpTbGWKoP4kohSO2Sim8Eh9U
+wX8OKiQS
+  "]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Show", "[", 
+  RowBox[{
+  "writePlot", ",", "writeOHPlot", ",", "writeSDMax", ",", "writeOHSDMax", 
+   ",", "writeSDMin", ",", "writeOHSDMin", ",", "readPlot", ",", "readOHPlot",
+    ",", "readSDMax", ",", "readOHSDMax", ",", "readSDMin", ",", 
+   "readOHSDMin", ",", 
+   RowBox[{"ImageSize", "\[Rule]", "1280"}], ",", 
+   RowBox[{"AxesLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"HoldForm", "[", "\"\<Data (x 116508 Bytes)\>\"", "]"}], ",", 
+      RowBox[{"HoldForm", "[", "\"\<Time (Microseconds)\>\"", "]"}]}], 
+     "}"}]}], ",", 
+   RowBox[{"PlotLabel", "\[Rule]", 
+    RowBox[{"HoldForm", "[", "\"\<Time vs Data\>\"", "]"}]}], ",", 
+   RowBox[{"LabelStyle", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"GrayLevel", "[", "0", "]"}], "}"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.622102822799924*^9, 3.622102879856996*^9}, {
+  3.622102981899809*^9, 3.622102986006447*^9}, {3.622103634631565*^9, 
+  3.622103650848287*^9}, {3.622103721130131*^9, 3.6221037261068373`*^9}, {
+  3.622114713652568*^9, 3.622114748483609*^9}, {3.622114829180998*^9, 
+  3.622114846618538*^9}, {3.622115209543828*^9, 3.6221152114551773`*^9}, {
+  3.622116784577009*^9, 3.622116784587083*^9}, {3.622116862675705*^9, 
+  3.622116862741658*^9}},
+ NumberMarks->False],
+
+Cell[BoxData[
+ GraphicsBox[{{{}, {{}, {}, 
+     {RGBColor[0, 0, 1], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], LineBox[{{1., 227787.1}, {2., 468344.}, {3., 656677.2}, {4., 
+       824623.55}, {5., 1.09490095*^6}, {6., 1.37755365*^6}, {7., 
+       1.697069*^6}, {8., 1.94611315*^6}, {9., 
+       2.1854954*^6}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 1, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], LineBox[{{1., 16385.}, {2., 32720.2}, {3., 49269.25}, {4., 
+       65717.05}, {5., 82174.2}, {6., 103658.9}, {7., 115151.4}, {8., 
+       131243.55}, {9., 147924.85}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 0, 1], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 303613.8581765726}, {2., 580084.1227548241}, {3., 
+       755932.967865598}, {4., 920888.2561402076}, {5., 
+       1.2609488555575528`*^6}, {6., 1.6011911614195374`*^6}, {7., 
+       1.963695528976197*^6}, {8., 2.237389502893203*^6}, {9., 
+       2.5375351371771065`*^6}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 1, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 16808.153201073732`}, {2., 33555.57527652641}, {3., 
+       50500.20336929082}, {4., 67339.216922263}, {5., 84254.5163878805}, {6.,
+        126245.36177155454`}, {7., 117977.20236206881`}, {8., 
+       134829.78901330158`}, {9., 151639.2466043236}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 0, 1], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 151960.34182342738`}, {2., 356603.8772451759}, {3., 
+       557421.432134402}, {4., 728358.8438597923}, {5., 928853.0444424471}, {
+       6., 1.1539161385804627`*^6}, {7., 1.430442471023803*^6}, {8., 
+       1.6548367971067969`*^6}, {9., 
+       1.8334556628228934`*^6}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 1, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 15961.846798926266`}, {2., 31884.82472347359}, {3., 
+       48038.29663070918}, {4., 64094.883077737}, {5., 80093.88361211949}, {
+       6., 81072.43822844546}, {7., 112325.59763793119`}, {8., 
+       127657.31098669842`}, {9., 144210.45339567642`}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], LineBox[{{1., 58691.95}, {2., 112580.75}, {3., 181583.15}, {4., 
+       235032.75}, {5., 263732.9}, {6., 327393.85}, {7., 401348.8}, {8., 
+       455315.05}, {9., 499088.9}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0.5, 0], PointSize[0.019444444444444445`], 
+      AbsoluteThickness[1.6], 
+      LineBox[{{1., 17066.45}, {2., 34242.95}, {3., 51449.45}, {4., 
+       68525.55}, {5., 85739.2}, {6., 102598.}, {7., 119847.4}, {8., 
+       136917.6}, {9., 153952.4}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 105923.30467426051`}, {2., 164175.3474771482}, {3., 
+       204099.06346318373`}, {4., 276733.55159632803`}, {5., 
+       304813.4038096252}, {6., 388664.09508405795`}, {7., 
+       404473.9871960774}, {8., 498853.4929519658}, {9., 
+       550846.5860001945}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0.5, 0], PointSize[0.019444444444444445`], 
+      AbsoluteThickness[1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 17256.114100590046`}, {2., 34642.55157459781}, {3., 
+       52100.062300674894`}, {4., 69725.81424612513}, {5., 
+       87134.00327230082}, {6., 104078.71568755397`}, {7., 
+       121864.15167168969`}, {8., 138776.81051156553`}, {9., 
+       155777.91190801808`}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 11460.595325739498`}, {2., 60986.1525228518}, {3., 
+       159067.23653681626`}, {4., 193331.94840367197`}, {5., 
+       222652.3961903748}, {6., 266123.60491594207`}, {7., 
+       398223.61280392256`}, {8., 411776.6070480342}, {9., 
+       447331.21399980545`}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0.5, 0], PointSize[0.019444444444444445`], 
+      AbsoluteThickness[1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 16876.78589940995}, {2., 33843.34842540218}, {3., 
+       50798.83769932511}, {4., 67325.28575387488}, {5., 84344.39672769919}, {
+       6., 101117.28431244603`}, {7., 117830.64832831032`}, {8., 
+       135058.38948843445`}, {9., 152126.88809198193`}}]}}, {}}},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->{True, True},
+  AxesLabel->{
+    FormBox[
+     TagBox["\"Data (x 116508 Bytes)\"", HoldForm], TraditionalForm], 
+    FormBox[
+     TagBox["\"Time (Microseconds)\"", HoldForm], TraditionalForm]},
+  AxesOrigin->{0, 0},
+  DisplayFunction->Identity,
+  Frame->{{False, False}, {False, False}},
+  FrameLabel->{{None, None}, {None, None}},
+  FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+  GridLines->{None, None},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  ImageSize->1280,
+  LabelStyle->{
+    GrayLevel[0]},
+  Method->{},
+  PlotLabel->FormBox[
+    TagBox["\"Time vs Data\"", HoldForm], TraditionalForm],
+  PlotRange->{{0., 9.}, {0, 6000000}},
+  PlotRangeClipping->True,
+  PlotRangePadding->{{
+     Scaled[0.02], 
+     Scaled[0.02]}, {0, 0}},
+  Ticks->{Automatic, Automatic}]], "Output",
+ CellChangeTimes->{{3.622102815095896*^9, 3.6221028803304234`*^9}, 
+   3.622102986299267*^9, 3.62210306362602*^9, 3.6221031177128153`*^9, 
+   3.622103297480904*^9, {3.622103639637705*^9, 3.6221036511607323`*^9}, {
+   3.6221037265799103`*^9, 3.62210373634229*^9}, 3.6221050272434883`*^9, 
+   3.6221050572574053`*^9, 3.6221060090985622`*^9, {3.622106167866962*^9, 
+   3.622106173218137*^9}, {3.622107437393936*^9, 3.62210744553798*^9}, 
+   3.622107933635539*^9, {3.622113821184496*^9, 3.6221138239405107`*^9}, 
+   3.6221138945075207`*^9, 3.622114104921763*^9, {3.622114707210248*^9, 
+   3.622114709881721*^9}, 3.622114751221799*^9, 3.6221148475905848`*^9, 
+   3.622115155563882*^9, 3.622115212149612*^9, {3.622116819448434*^9, 
+   3.622116872190366*^9}, {3.622118370564289*^9, 3.622118373019033*^9}, 
+   3.622118932520397*^9, {3.622119052164633*^9, 3.622119055929398*^9}, 
+   3.6221208393187227`*^9, 3.6221209214238863`*^9, 3.6221227118099947`*^9, {
+   3.622125457939986*^9, 3.62212546095718*^9}, 3.622125521640108*^9, {
+   3.6221259992554817`*^9, 3.6221260144704437`*^9}, 3.622126210667008*^9, {
+   3.622249727239854*^9, 3.6222497293883953`*^9}, {3.622250919402677*^9, 
+   3.6222509718966827`*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Show", "[", 
+  RowBox[{
+  "writeSpeedPlot", ",", "writeTrueSpeedPlot", ",", "writeSpeedSDMax", ",", 
+   "writeTrueSpeedSDMax", ",", "writeSpeedSDMin", ",", "writeTrueSpeedSDMin", 
+   ",", "readSpeedPlot", ",", "readTrueSpeedPlot", ",", "readSpeedSDMax", ",",
+    "readTrueSpeedSDMax", ",", "readSpeedSDMin", ",", "readTrueSpeedSDMin", 
+   ",", 
+   RowBox[{"ImageSize", "\[Rule]", "1280"}], ",", 
+   RowBox[{"AxesLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"HoldForm", "[", "\"\<Data (x 116508 Bytes)\>\"", "]"}], ",", 
+      RowBox[{"HoldForm", "[", "\"\<Speed (Kb/s)\>\"", "]"}]}], "}"}]}], ",", 
+   
+   RowBox[{"PlotLabel", "\[Rule]", 
+    RowBox[{"HoldForm", "[", "\"\<Speed vs Data\>\"", "]"}]}], ",", 
+   RowBox[{"LabelStyle", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"GrayLevel", "[", "0", "]"}], "}"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.622102891142301*^9, 3.622102977779612*^9}, {
+  3.622104285536528*^9, 3.6221043016178093`*^9}, {3.6221043329051657`*^9, 
+  3.6221043608640423`*^9}, {3.6221049623719673`*^9, 3.622104962509267*^9}, {
+  3.622114866619072*^9, 3.622114946806241*^9}, {3.6221149832549753`*^9, 
+  3.622115031151532*^9}, {3.622115216897283*^9, 3.622115217832612*^9}, {
+  3.622116784589752*^9, 3.622116784596072*^9}, {3.6221168627645884`*^9, 
+  3.622116862811453*^9}, {3.622118941776991*^9, 3.622118942877157*^9}, {
+  3.622119036702705*^9, 3.622119042961582*^9}, {3.62212616698886*^9, 
+  3.622126178696497*^9}}],
+
+Cell[BoxData[
+ GraphicsBox[{{{}, {{}, {}, 
+     {RGBColor[0, 0, 1], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], LineBox[{{1., 4091.820827430526}, {2., 3980.253830517739}, {3., 
+       4258.092103700265}, {4., 4521.161201374857}, {5., 4256.385018206442}, {
+       6., 4059.6487839148767`}, {7., 3844.539025814507}, {8., 
+       3831.4894485965524`}, {9., 3838.2949696439537`}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 1, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], LineBox[{{1., 4408.9628248726}, {2., 4279.215231123736}, {3., 
+       4603.482717010866}, {4., 4912.668424898192}, {5., 4601.754619397582}, {
+       6., 4389.989047368316}, {7., 4124.391814086903}, {8., 
+       4108.566257322289}, {9., 4116.949962787791}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 0, 1], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 5113.742258312625}, {2., 4746.959958424275}, {3., 
+       4817.189562551079}, {4., 4993.779080429006}, {5., 4816.886591608652}, {
+       6., 4626.657753953897}, {7., 4366.5426057182}, {8., 
+       4330.294985715971}, {9., 4370.792956578177}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 1, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 5568.115817407229}, {2., 5147.578442529282}, {3., 
+       5243.168824721147}, {4., 5457.390980610034}, {5., 5242.990483101541}, {
+       6., 4988.391989447407}, {7., 4713.873720241781}, {8., 
+       4670.735258587423}, {9., 4717.997981511229}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 0, 1], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 3069.8993965484274`}, {2., 3213.547702611203}, {3., 
+       3698.994644849452}, {4., 4048.5433223207087`}, {5., 
+       3695.88344480423}, {6., 3492.639813875857}, {7., 3322.535445910814}, {
+       8., 3332.6839114771337`}, {9., 
+       3305.79698270973}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[0, 1, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 3249.8098323379727`}, {2., 3410.8520197181892`}, {3., 
+       3963.7966093005844`}, {4., 4367.945869186351}, {5., 
+       3960.518755693622}, {6., 3791.5861052892274`}, {7., 
+       3534.909907932026}, {8., 3546.397256057155}, {9., 
+       3515.9019440643533`}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], LineBox[{{1., 15880.610543694664`}, {2., 16558.14160058447}, {3., 
+       15398.961853013345`}, {4., 15862.70849487997}, {5., 
+       17670.60537384604}, {6., 17081.518177571143`}, {7., 
+       16256.303743775987`}, {8., 16376.599016439277`}, {9., 
+       16807.779135140052`}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0.5, 0], PointSize[0.019444444444444445`], 
+      AbsoluteThickness[1.6], 
+      LineBox[{{1., 22391.658959051543`}, {2., 23796.021843860817`}, {3., 
+       21487.0706050777}, {4., 22390.959670212458`}, {5., 
+       26182.499717686638`}, {6., 24877.61228688163}, {7., 
+       23177.319899652364`}, {8., 23418.88102432981}, {9., 
+       24305.09667913999}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 22961.797741730694`}, {2., 21761.78918823883}, {3., 
+       17097.753050886033`}, {4., 18253.04987527858}, {5., 
+       20052.119317478406`}, {6., 19774.30307431141}, {7., 
+       16381.908835633145`}, {8., 17805.899667027516`}, {9., 
+       18387.042358234427`}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0.5, 0], PointSize[0.019444444444444445`], 
+      AbsoluteThickness[1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 34271.38003025966}, {2., 33200.877442823985`}, {3., 
+       24578.020323739394`}, {4., 26771.693984969887`}, {5., 
+       30955.899683644962`}, {6., 30104.236136271167`}, {7., 
+       23268.224608220644`}, {8., 26129.63968576766}, {9., 
+       27376.983665620835`}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0, 0], PointSize[0.019444444444444445`], AbsoluteThickness[
+      1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 8799.423345658632}, {2., 11354.494012930112`}, {3., 
+       13700.170655140655`}, {4., 13472.367114481358`}, {5., 
+       15289.091430213672`}, {6., 14388.733280830875`}, {7., 
+       16130.698651918829`}, {8., 14947.298365851037`}, {9., 
+       15228.515912045676`}}]}}, {}}, {{}, {{}, {}, 
+     {RGBColor[1, 0.5, 0], PointSize[0.019444444444444445`], 
+      AbsoluteThickness[1.6], Dashing[{Small, Small}], 
+      LineBox[{{1., 10511.937887843427`}, {2., 14391.166244897651`}, {3., 
+       18396.120886416007`}, {4., 18010.22535545503}, {5., 
+       21409.099751728314`}, {6., 19650.98843749209}, {7., 
+       23086.415191084085`}, {8., 20708.12236289196}, {9., 
+       21233.209692659148`}}]}}, {}}},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->{True, True},
+  AxesLabel->{
+    FormBox[
+     TagBox["\"Data (x 116508 Bytes)\"", HoldForm], TraditionalForm], 
+    FormBox[
+     TagBox["\"Speed (Kb/s)\"", HoldForm], TraditionalForm]},
+  AxesOrigin->{0, 0},
+  DisplayFunction->Identity,
+  Frame->{{False, False}, {False, False}},
+  FrameLabel->{{None, None}, {None, None}},
+  FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+  GridLines->{None, None},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  ImageSize->1280,
+  LabelStyle->{
+    GrayLevel[0]},
+  Method->{},
+  PlotLabel->FormBox[
+    TagBox["\"Speed vs Data\"", HoldForm], TraditionalForm],
+  PlotRange->{{0., 9.}, {0, 60000}},
+  PlotRangeClipping->True,
+  PlotRangePadding->{{
+     Scaled[0.02], 
+     Scaled[0.02]}, {0, 0}},
+  Ticks->{Automatic, Automatic}]], "Output",
+ CellChangeTimes->{{3.6221150042852163`*^9, 3.622115031669126*^9}, 
+   3.622115158201626*^9, 3.6221152184134693`*^9, {3.6221168194675093`*^9, 
+   3.622116872232636*^9}, {3.622118370581984*^9, 3.622118373037816*^9}, {
+   3.622118937089569*^9, 3.622118945948978*^9}, {3.6221190521936197`*^9, 
+   3.6221190559750547`*^9}, 3.622120839336434*^9, 3.6221209214740067`*^9, 
+   3.622121008748352*^9, {3.622121047280023*^9, 3.622121074512888*^9}, 
+   3.6221211061220627`*^9, 3.622122711836925*^9, {3.622125457986746*^9, 
+   3.622125460977553*^9}, 3.622125521710987*^9, {3.622126002032374*^9, 
+   3.622126014491592*^9}, {3.622126170632056*^9, 3.622126179201704*^9}, 
+   3.622126213766818*^9, {3.622126270417239*^9, 3.6221262805865*^9}, {
+   3.622249727288838*^9, 3.622249729409802*^9}, {3.622250919446513*^9, 
+   3.622250971918477*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Mean", "[", "writeSpeed", "]"}], "//", "N"}]], "Input",
+ CellChangeTimes->{{3.6221255815734262`*^9, 3.62212560217444*^9}}],
+
+Cell[BoxData["4075.742801022191`"], "Output",
+ CellChangeTimes->{{3.622125590421674*^9, 3.622125602488461*^9}, 
+   3.622126014501267*^9, 3.6221263489581223`*^9, {3.6222497272981653`*^9, 
+   3.622249729420041*^9}, {3.622250919456476*^9, 3.6222509719283133`*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Mean", "[", "readSpeed", "]"}], "//", "N"}]], "Input",
+ CellChangeTimes->{{3.622125611820812*^9, 3.6221256198194304`*^9}, {
+  3.622125857201651*^9, 3.6221258847551603`*^9}}],
+
+Cell[BoxData["16432.580882104994`"], "Output",
+ CellChangeTimes->{
+  3.62212562019163*^9, {3.622125869203247*^9, 3.6221258853174057`*^9}, 
+   3.622126014522317*^9, 3.6221263507215242`*^9, {3.6222497273171587`*^9, 
+   3.6222497294404783`*^9}, {3.6222509194763317`*^9, 3.622250971949129*^9}}]
+}, Open  ]]
+},
+WindowSize->{1918, 1056},
+WindowMargins->{{0, Automatic}, {2, Automatic}},
+FrontEndVersion->"10.0 for Linux x86 (64-bit) (June 27, 2014)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 1613, 37, 151, "Input"],
+Cell[2174, 59, 233, 6, 30, "Input"],
+Cell[2410, 67, 19905, 596, 1310, "Input"],
+Cell[CellGroupData[{
+Cell[22340, 667, 1287, 26, 49, "Input"],
+Cell[23630, 695, 6644, 116, 756, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[30311, 816, 1485, 28, 49, "Input"],
+Cell[31799, 846, 6615, 117, 767, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[38451, 968, 157, 3, 30, "Input"],
+Cell[38611, 973, 261, 3, 28, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[38909, 981, 208, 4, 28, "Input"],
+Cell[39120, 987, 290, 4, 60, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
