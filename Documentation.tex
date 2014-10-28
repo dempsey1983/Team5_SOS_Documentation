@@ -291,7 +291,7 @@ Callback for the sys\_write syscall. If not the last callback (ie, the entire st
 Here is a diagram of the write operation.
 \begin{figure}[htbp]
 \centering
-\includegraphics[scale=0.6]{SYS_WRITE}
+%\includegraphics[scale=0.6]{SYS_WRITE}
 \caption{File System Write Operation}
 \end{figure}
 Stepping through;
@@ -440,5 +440,28 @@ Loads the elf file obtained from nfs to address space, calls load\_segment\_into
 \begin{itemize}
 \item Elf loading from the NFS server was done by initially reading in the elf file header. From here, the points in the file which had to be read were done so by nfs, and then copied into the corresponding frame allocated. This was done one packet at a time. Due to the nfs operation we had to use coroutines, as with demand paging.
 \end{itemize}
+
+\section{Old File System Benchmarks}
+We benchmarked the filesystem for milestone 5 which had a different implementation than what we currently have (The old system was difficult to adapt to demand paging, the new system is slower with writes at about 1Mb/s, because we are only sending 4 packets at a time with 1024 bytes per packet).
+
+All benchmarking was done without the ethernet dongle and our mean speed at 30 packets in flight, 1284 bytes per packet is 4Mb/s for write and almost 17Mb/s for read. I had to artificially slow down reading, any more and we would get spurious interrupts slowing things down again.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.35]{benchmark_true_30_3}
+\caption{The Blue line is write, and the red line is read.
+The green and orange lines are overhead for write and read respectively.}
+\end{figure}
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.35]{benchmark_true_speed_30_3}
+\caption{The Blue line is write, and the red line is read.
+The green and orange lines are "ideal" speeds (minus overhead) for write and read respectively.}
+\end{figure}
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.45]{benchmark_inflight}
+\caption{The is a graph of speed of writing a 1MB file vs maximum number of packets inflight, interestingly, it follows a zig zag pattern, it seems that the optimal is 30 packets in flight}
+\end{figure}
 
 \end{document}
